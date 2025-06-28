@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html class="" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Notes - The Ultimate Student Notebook</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet"><!-- STEP 1: MARKDOWN LIBRARY ADD KI GAYI -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        MathJax = {
+          tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] },
+          chtml: { mtextInheritFont: true }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+            overflow: hidden;
+        }
+
+        #note-content-input {
+            font-family: 'Inter', 'Noto Sans Devanagari', 'Segoe UI', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 3px;
+        }
+
+        html.dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: #374151;
+        }
+
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #6b7280;
+        }
+
+        [contenteditable][data-placeholder]:empty:before {
+            content: attr(data-placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+            display: block;
+        }
+
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #editor-actions .action-btn.hidden {
+            display: none !important;
+        }
+
+        .title-wrapper {
+            background: linear-gradient(to right, rgba(220, 252, 231, 0.8), transparent);
+        }
+
+        html.dark .title-wrapper {
+            background: linear-gradient(to right, rgba(34, 197, 94, 0.2), transparent);
+        }
+
+        html.dark body {
+            background-color: #111827;
+            color: #d1d5db;
+        }
+
+        html.dark #sidebar,
+        html.dark header,
+        html.dark .modal-content {
+            background-color: #1f2937;
+            border-color: #374151;
+        }
+
+        html.dark h1,
+        html.dark h3,
+        html.dark #note-title-input,
+        html.dark .breadcrumb a {
+            color: #f9fafb;
+        }
+
+        html.dark .list-item-wrapper:hover>.list-item {
+            background-color: #374151;
+        }
+
+        .list-item {
+            color: #111827;
+        }
+
+        html.dark .list-item {
+            color: #f3f4f6;
+        }
+
+        html.dark input,
+        html.dark [contenteditable] {
+            color: #d1d5db;
+            border-color: #4b5563;
+        }
+
+        html.dark #note-content-input {
+            background-color: #1f2937;
+        }
+
+        html.dark #note-content-input *,
+        html.dark #reading-content *,
+        #reading-mode-page.reading-theme-dark #reading-content * {
+            color: inherit !important;
+            background-color: transparent !important;
+        }
+
+        html.dark #note-title-input:focus {
+            border-color: #3b82f6;
+        }
+
+        html.dark .cancel-btn {
+            background-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: #475569;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb span {
+            color: #64748b;
+        }
+
+        .tree-container ul {
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tree-container ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 10px;
+            border-left: 1px solid #d1d5db;
+        }
+
+        html.dark .tree-container ul::before {
+            border-left-color: #4b5563;
+        }
+
+        .tree-container li {
+            list-style: none;
+            position: relative;
+        }
+
+        .tree-container li::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: -10px;
+            width: 10px;
+            height: 1px;
+            border-top: 1px solid #d1d5db;
+        }
+
+        html.dark .tree-container li::before {
+            border-top-color: #4b5563;
+        }
+
+        .tree-container li:last-child>ul::before {
+            bottom: auto;
+            height: 20px;
+        }
+
+        .folder-arrow {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        #reading-mode-content-wrapper {
+            font-family: 'Lora', serif;
+        }
+
+        #reading-progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background-color: #3b82f6;
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 60;
+        }
+
+        #reading-mode-page.reading-theme-light {
+            background-color: #f8f8f8;
+            color: #1f2937;
+        }
+
+        #reading-mode-page.reading-theme-sepia {
+            background-color: #fbf0d9;
+            color: #4d3d30;
+        }
+
+        #reading-mode-page.reading-theme-dark {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        #reading-mode-page.reading-theme-default {
+            background-color: #f1f5f9;
+            color: #374151;
+        }
+
+        #reading-content {
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        #reading-mode-page #reading-title {
+            color: inherit !important;
+        }
+
+        #reading-mode-page.reading-theme-default #reading-title,
+        #reading-mode-page.reading-theme-light #reading-title,
+        #reading-mode-page.reading-theme-sepia #reading-title {
+            border-color: #e5e7eb;
+        }
+
+        #reading-mode-page.reading-theme-dark #reading-title {
+            border-color: #374151;
+        }
+
+        #reading-content mjx-math {
+            margin-top: 0.75rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+
+        /* STEP 2: TABLE KE LIYE CSS ADD KI GAYI */
+        #reading-content table {
+            width: 100%;
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+            border-collapse: collapse;
+            border: 1px solid #d1d5db;
+        }
+
+        #reading-content th,
+        #reading-content td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        #reading-content th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        html.dark #reading-content table,
+        #reading-mode-page.reading-theme-dark #reading-content table {
+            border-color: #4b5563;
+        }
+
+        html.dark #reading-content th,
+        html.dark #reading-content td,
+        #reading-mode-page.reading-theme-dark #reading-content th,
+        #reading-mode-page.reading-theme-dark #reading-content td {
+            border-color: #4b5563;
+        }
+
+        html.dark #reading-content th,
+        #reading-mode-page.reading-theme-dark #reading-content th {
+            background-color: #374151;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 text-slate-800 transition-colors duration-300">
+    <div id="app" class="flex h-screen w-screen">
+        <aside id="sidebar" class="bg-white w-full md:w-80 lg:w-96 h-screen flex flex-col absolute md:relative z-20 transform -translate-x-full md:translate-x-0 shadow-lg">
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-slate-700">E-Notes</h1><button id="close-sidebar-btn" class="md:hidden text-slate-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg></button>
+            </div>
+            <div class="p-4 border-b border-slate-200"><button id="add-new-btn" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"></path>
+                    </svg>Add New</button></div>
+            <div id="breadcrumb-container" class="p-2 border-b border-slate-200 text-sm truncate"><br></div>
+            <div id="notes-list-container" class="tree-container flex-grow overflow-y-auto custom-scrollbar p-2"><br></div>
+        </aside>
+        <main class="flex-1 flex flex-col h-screen overflow-hidden">
+            <header class="bg-white p-3 border-b border-slate-200 flex justify-between items-center shadow-sm"><button id="menu-btn" class="md:hidden text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">
+                        <path d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg></button>
+                <div id="editor-actions" class="hidden items-center gap-2 ml-auto"><!-- BACKUP AND RESTORE BUTTONS START --> <button id="backup-btn" class="action-btn text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 rounded-full" title="Backup All Notes">&nbsp;<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">&nbsp;<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>&nbsp;</svg>&nbsp;</button> <button id="restore-btn" class="action-btn text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 rounded-full" title="Restore Notes">&nbsp;<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">&nbsp;<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>&nbsp;</svg>&nbsp;</button> <input type="file" id="restore-file-input" class="hidden" accept=".json">
+                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"><br></div><!-- BACKUP AND RESTORE BUTTONS END --> <button id="dark-mode-toggle" class="action-btn text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 rounded-full" title="Toggle Dark Mode"><svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">
+                            <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg><svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none">
+                            <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg></button><button id="rename-btn" class="action-btn text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 rounded-full" title="Rename Item"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">
+                            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path>
+                        </svg></button><button id="reading-mode-btn" class="action-btn text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 rounded-full" title="Enter Reading Mode"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">
+                            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.523 5.754 19 7.5 19s3.332-.477 4.5-1.247m5.5-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.523 18.246 19 16.5 19s-3.332-.477-4.5-1.247m0 0A7.5 7.5 0 0012 12.75"></path>
+                        </svg></button>
+                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"><br></div><button id="save-note-btn" class="action-btn bg-green-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-green-600 transition-colors">Save</button><button id="delete-btn" class="action-btn bg-red-500 text-white font-semibold py-2 px-5 rounded-lg hover:bg-red-600 transition-colors">Delete</button>
+                </div>
+            </header>
+            <div id="content-area" class="flex-grow flex flex-col overflow-y-auto custom-scrollbar">
+                <div id="welcome-screen" class="flex flex-col items-center justify-center h-full text-center text-slate-500 p-4 md:p-6 lg:p-8"><svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mb-4 text-slate-400" fill="none">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold">Welcome to E-Notes</h2>
+                    <p class="mt-2 max-w-md">Select an item from the sidebar or create a new one.</p>
+                </div>
+                <div id="note-editor" class="hidden h-full flex flex-col">
+                    <div class="title-wrapper px-4 md:px-6 lg:px-8"><input id="note-title-input" class="text-3xl font-bold bg-transparent outline-none w-full py-4" placeholder="Note Title"></div>
+                    <div id="note-content-input" class="flex-grow outline-none px-4 md:px-6 lg:px-8 pt-4" contenteditable="true" data-placeholder="Start writing your notes here..." spellcheck="false"><br></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="add-item-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden items-center justify-center">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-11/12 md:w-1/3">
+            <h3 class="text-xl font-bold mb-4">Create New</h3><input id="item-name-input" type="text" placeholder="Enter name for Folder/Note" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex items-center gap-4 mt-4"><label class="flex items-center gap-2"><input type="radio" name="item-type" value="folder" class="form-radio text-blue-600" checked="true">&nbsp;Folder</label><label class="flex items-center gap-2"><input type="radio" name="item-type" value="note" class="form-radio text-blue-600">&nbsp;Note</label></div>
+            <div class="mt-6 flex justify-end gap-3"><button id="cancel-add-btn" class="cancel-btn bg-slate-200 text-slate-800 font-semibold py-2 px-4 rounded-lg hover:bg-slate-300">Cancel</button><button id="confirm-add-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Create</button></div>
+        </div>
+    </div>
+    <div id="rename-item-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden items-center justify-center">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-11/12 md:w-1/3">
+            <h3 class="text-xl font-bold mb-4">Rename Item</h3><input id="rename-item-input" type="text" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="mt-6 flex justify-end gap-3"><button id="cancel-rename-btn" class="cancel-btn bg-slate-200 text-slate-800 font-semibold py-2 px-4 rounded-lg hover:bg-slate-300">Cancel</button><button id="confirm-rename-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Rename</button></div>
+        </div>
+    </div>
+    <div id="reading-mode-page" class="hidden h-screen w-screen flex-col">
+        <div id="reading-progress-bar"><br></div>
+        <div id="reading-mode-controls" class="flex-shrink-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm p-2 flex items-center justify-between shadow-md z-10">
+            <div class="flex items-center gap-2"><span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Theme:</span></div>
+            <div class="flex items-center gap-2"><span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Font Size:</span><button id="decrease-font-btn" class="font-bold text-lg p-1 rounded-full w-8 h-8 flex items-center justify-center bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">-</button><button id="increase-font-btn" class="font-bold text-lg p-1 rounded-full w-8 h-8 flex items-center justify-center bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">+</button></div><button id="exit-reading-mode-btn" class="rounded-full p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title="Exit Reading Mode"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none">
+                    <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg></button>
+        </div>
+        <div id="reading-mode-scroll-container" class="flex-grow overflow-y-auto custom-scrollbar">
+            <div id="reading-mode-content-wrapper" class="max-w-5xl mx-auto p-8 md:p-12 lg:p-16">
+                <h1 id="reading-title" class="text-2xl md:text-4xl font-bold pb-6 mb-6 border-b"><br></h1>
+                <div id="reading-content"><br></div>
+            </div>
+        </div>
+    </div>
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white py-2 px-5 rounded-lg shadow-lg opacity-0 translate-y-10 transition-all duration-300 z-50">
+        <p id="toast-message"><br></p>
+    </div>
+    <script>
+        // Final Javascript
+        (function() {
+            const dom = { 
+                app: document.getElementById("app"), 
+                sidebar: document.getElementById("sidebar"), 
+                menuBtn: document.getElementById("menu-btn"), 
+                closeSidebarBtn: document.getElementById("close-sidebar-btn"), 
+                notesListContainer: document.getElementById("notes-list-container"), 
+                addNewBtn: document.getElementById("add-new-btn"), 
+                addItemModal: document.getElementById("add-item-modal"), 
+                cancelAddBtn: document.getElementById("cancel-add-btn"), 
+                confirmAddBtn: document.getElementById("confirm-add-btn"), 
+                itemNameInput: document.getElementById("item-name-input"), 
+                welcomeScreen: document.getElementById("welcome-screen"), 
+                noteEditor: document.getElementById("note-editor"), 
+                editorActions: document.getElementById("editor-actions"), 
+                noteTitleInput: document.getElementById("note-title-input"), 
+                noteContentInput: document.getElementById("note-content-input"), 
+                saveNoteBtn: document.getElementById("save-note-btn"), 
+                deleteBtn: document.getElementById("delete-btn"), 
+                readingModeBtn: document.getElementById("reading-mode-btn"), 
+                renameBtn: document.getElementById("rename-btn"), 
+                toast: document.getElementById("toast"), 
+                toastMessage: document.getElementById("toast-message"), 
+                darkModeToggle: document.getElementById("dark-mode-toggle"), 
+                themeIconSun: document.getElementById("theme-icon-sun"), 
+                themeIconMoon: document.getElementById("theme-icon-moon"), 
+                breadcrumbContainer: document.getElementById("breadcrumb-container"), 
+                renameItemModal: document.getElementById("rename-item-modal"), 
+                renameItemInput: document.getElementById("rename-item-input"), 
+                cancelRenameBtn: document.getElementById("cancel-rename-btn"), 
+                confirmRenameBtn: document.getElementById("confirm-rename-btn"), 
+                readingPage: document.getElementById("reading-mode-page"), 
+                readingControls: document.getElementById("reading-mode-controls"), 
+                readingScrollContainer: document.getElementById("reading-mode-scroll-container"), 
+                readingProgressBar: document.getElementById("reading-progress-bar"), 
+                readingTitle: document.getElementById("reading-title"), 
+                readingContent: document.getElementById("reading-content"), 
+                exitReadingBtn: document.getElementById("exit-reading-mode-btn"), 
+                decreaseFontBtn: document.getElementById("decrease-font-btn"), 
+                increaseFontBtn: document.getElementById("increase-font-btn"),
+                backupBtn: document.getElementById("backup-btn"),
+                restoreBtn: document.getElementById("restore-btn"),
+                restoreFileInput: document.getElementById("restore-file-input"),
+            };
+            let db, activeItemId = null, activeFolderForCreation = null, allItemsCache = [], openFolders = new Set;
+            let readingFontSize = 19;
+            const DB_NAME = "EnotesPolishedDB_v12", STORE_NAME = "notes";
+            function renderMath(element) { if (window.MathJax && window.MathJax.typesetPromise) { setTimeout(() => { window.MathJax.typesetPromise([element]).catch((err) => console.error('MathJax error:', err)); }, 100); } }
+            function initDB() { return new Promise(((resolve, reject) => { const request = indexedDB.open(DB_NAME, 1); request.onerror = () => reject("Database Error."); request.onupgradeneeded = (e => { e.target.result.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: !0 }).createIndex("parentId", "parentId", { unique: !1 }) }), request.onsuccess = (e => { db = e.target.result, resolve(db) }) })) }
+            function runDBTransaction(mode, callback) { return new Promise(((resolve, reject) => { if (!db) return reject("Database not initialized."); const transaction = db.transaction(STORE_NAME, mode), store = transaction.objectStore(STORE_NAME), request = callback(store); request.onsuccess = () => resolve(request.result), request.onerror = (e => reject(e.target.error)) })) }
+            const addItem = item => runDBTransaction("readwrite", (store => store.add(item)));
+            const getAllItems = () => runDBTransaction("readonly", (store => store.getAll()));
+            const updateItem = item => runDBTransaction("readwrite", (store => store.put(item)));
+            const deleteItem = id => runDBTransaction("readwrite", (store => store.delete(id)));
+            async function deleteItemAndChildren(id) { const allItems = await getAllItems(), itemsToDelete = [id], queue = [id]; for (; queue.length > 0;) { const parentId = queue.shift(), children = allItems.filter((item => item.parentId === parentId)); for (const child of children) itemsToDelete.push(child.id), "folder" === child.type && queue.push(child.id) } for (const id of itemsToDelete) await deleteItem(id) }
+            function showToast(message) { dom.toastMessage.textContent = message, dom.toast.classList.remove("opacity-0", "translate-y-10"), setTimeout((() => dom.toast.classList.add("opacity-0", "translate-y-10")), 2000) }
+            async function refreshUI() { allItemsCache = await getAllItems(), renderNotesList(), updateBreadcrumbs() }
+            function renderNotesList() { const tree = buildTree(allItemsCache, null); dom.notesListContainer.innerHTML = ""; if (0 === tree.length) { dom.notesListContainer.innerHTML = '<p class="p-4 text-slate-500">No items yet.</p>'; } else { dom.notesListContainer.appendChild(generateListHtml(tree)); } }
+            function buildTree(items, parentId) { return items.filter((item => item.parentId === parentId)).map((item => ({ ...item, children: buildTree(items, item.id) }))).sort(((a, b) => "folder" === a.type && "folder" !== b.type ? -1 : "folder" !== a.type && "folder" === b.type ? 1 : a.title.localeCompare(b.title))) }
+            function generateListHtml(items) { const ul = document.createElement("ul"); items.forEach((item => { const li = document.createElement("li"); const isFolder = "folder" === item.type; const itemWrapper = document.createElement("div"); itemWrapper.className = "list-item-wrapper"; const itemEl = document.createElement("div"); itemEl.className = "list-item flex items-center p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"; let iconClass = isFolder ? "text-yellow-500" : "text-blue-500"; if (item.id === activeItemId) { itemEl.classList.add("font-semibold", "text-blue-700", "dark:text-blue-500"); iconClass = "text-blue-700 dark:text-blue-500"; } const icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 flex-shrink-0 ${iconClass}" viewBox="0 0 20 20" fill="currentColor">${isFolder?'<path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />':'<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />'}</svg>`; const arrow = isFolder ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-slate-400 folder-arrow ${openFolders.has(item.id)?"rotate-90":""}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>` : '<div class="w-4 mr-1"></div>'; itemEl.innerHTML = `${arrow}${icon}<span class="truncate flex-grow">${item.title}</span>`; itemEl.addEventListener("click", (e => { e.stopPropagation(); if (isFolder) { toggleFolder(item.id); } handleItemSelect(item.id); })); itemWrapper.appendChild(itemEl); if (isFolder && item.children.length > 0 && openFolders.has(item.id)) { itemWrapper.appendChild(generateListHtml(item.children)); } li.appendChild(itemWrapper); ul.appendChild(li); })); return ul; }
+            function toggleFolder(id) { openFolders.has(id) ? openFolders.delete(id) : openFolders.add(id); localStorage.setItem("openFolders", JSON.stringify(Array.from(openFolders))); renderNotesList() }
+            function showEditor(item) { activeItemId = item.id; dom.noteTitleInput.value = item.title; dom.noteContentInput.innerHTML = item.content || ""; dom.welcomeScreen.classList.add("hidden"); dom.welcomeScreen.classList.remove("flex"); dom.noteEditor.classList.remove("hidden"); dom.noteEditor.classList.add("flex"); updateEditorActionsVisibility("note"); }
+            function hideEditor(showActions = false) { 
+                dom.editorActions.classList.remove("hidden");
+                dom.editorActions.classList.add("flex");
+        
+                if (!showActions) { 
+                    activeItemId = null; 
+                    dom.saveNoteBtn.classList.add("hidden");
+                    dom.readingModeBtn.classList.add("hidden");
+                    dom.renameBtn.classList.add("hidden");
+                    dom.deleteBtn.classList.add("hidden");
+                }
+                dom.welcomeScreen.classList.remove("hidden"); 
+                dom.welcomeScreen.classList.add("flex"); 
+                dom.noteEditor.classList.add("hidden"); 
+                dom.noteEditor.classList.remove("flex"); 
+                if (showActions) { updateEditorActionsVisibility("folder") } 
+            }
+            function updateEditorActionsVisibility(type) { 
+                dom.editorActions.classList.remove("hidden"); 
+                dom.editorActions.classList.add("flex"); 
+                const isNote = "note" === type; 
+                dom.saveNoteBtn.classList.toggle("hidden", !isNote); 
+                dom.readingModeBtn.classList.toggle("hidden", !isNote); 
+                dom.renameBtn.classList.remove("hidden"); 
+                dom.deleteBtn.classList.remove("hidden");
+            }
+            function updateBreadcrumbs() { const homeLink = `<a href="#" data-id="root" class="text-slate-700 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">Home</a>`; if (null === activeItemId) { dom.breadcrumbContainer.innerHTML = `<a href="#" data-id="root" class="text-slate-900 dark:text-white font-semibold">Home</a>`; return; } const path = []; let currentItem = allItemsCache.find((item => item.id === activeItemId)); for (; currentItem;) { path.unshift(currentItem); currentItem = allItemsCache.find((item => item.id === currentItem.parentId)); } const pathLinks = path.map(((item, index) => { const isLast = index === path.length - 1; const linkClass = isLast ? "text-slate-900 dark:text-white font-semibold" : "text-slate-700 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"; return `<a href="#" data-id="${item.id}" class="${linkClass}">${item.title}</a>`; })).join('<span class="mx-1 text-slate-400">/</span>'); dom.breadcrumbContainer.innerHTML = `${homeLink}<span class="mx-1 text-slate-400">/</span>${pathLinks}`; }
+            async function handleItemSelect(id) { const item = allItemsCache.find((item => item.id === id)); if (item) { activeItemId = id; if ("note" === item.type) { showEditor(item) } else { hideEditor(true) } if (window.innerWidth < 768) { dom.sidebar.classList.add("-translate-x-full") } await refreshUI() } }
+            async function handleSaveNote() { if (activeItemId) { const item = allItemsCache.find((item => item.id === activeItemId)); if ("note" === item.type) { const newTitle = dom.noteTitleInput.value.trim() || "Untitled Note", updatedNote = { ...item, title: newTitle, content: dom.noteContentInput.innerHTML }; await updateItem(updatedNote); showToast("Note saved successfully!"); if (item.title !== newTitle) { await refreshUI() } else { const index = allItemsCache.findIndex((item => item.id === activeItemId)); if (index > -1) { allItemsCache[index] = updatedNote } } } } }
+            async function handleConfirmAdd() { const name = dom.itemNameInput.value.trim(); if (name) { const type = document.querySelector('input[name="item-type"]:checked').value, newItem = { title: name, type: type, parentId: activeFolderForCreation, createdAt: (new Date).toISOString() }; if ("note" === type) { newItem.content = "" } if (activeFolderForCreation) { openFolders.add(activeFolderForCreation) } const newId = await addItem(newItem); dom.addItemModal.classList.add("hidden"); dom.itemNameInput.value = ""; await refreshUI(); await handleItemSelect(newId) } }
+            function handleShowRenameModal() { if (activeItemId) { const item = allItemsCache.find((item => item.id === activeItemId)); if (item) { dom.renameItemInput.value = item.title; dom.renameItemModal.classList.remove("hidden"); dom.renameItemModal.classList.add("flex"); dom.renameItemInput.focus() } } }
+            async function handleConfirmRename() { const newName = dom.renameItemInput.value.trim(); if (newName && activeItemId) { const item = allItemsCache.find((item => item.id === activeItemId)); if (item) { await updateItem({ ...item, title: newName }); dom.renameItemModal.classList.add("hidden"); showToast("Item renamed successfully!"); await refreshUI(); if ("note" === item.type) { dom.noteTitleInput.value = newName } } } }
+            async function handleDelete() { if (activeItemId) { const item = allItemsCache.find((item => item.id === activeItemId)); const message = "folder" === item.type ? "Are you sure you want to delete this folder and ALL its contents?" : "Are you sure you want to delete this note?"; if (confirm(message)) { await deleteItemAndChildren(activeItemId); hideEditor(); activeItemId = null; await refreshUI(); showToast(`${item.type.charAt(0).toUpperCase()+item.type.slice(1)} deleted.`) } } }
+            function handleReadingModeToggle() {
+                if (!window.marked) {
+                    alert("Markdown library not loaded. Please check your internet connection and try again.");
+                    return;
+                }
+                const item = allItemsCache.find(item => item.id === activeItemId);
+                if (item && item.type === "note") {
+                    dom.readingTitle.textContent = item.title;
+                    const markdownReadyContent = (item.content || "")
+                        .replace(/<div><br><\/div>/g, '\n').replace(/<div>/g, '\n').replace(/<\/div>/g, '')
+                        .replace(/</g, '<').replace(/>/g, '>').replace(/&/g, '&').trim();
+                    const convertedHtml = window.marked.parse(markdownReadyContent, { gfm: true, breaks: true });
+                    dom.readingContent.innerHTML = convertedHtml;
+                    dom.app.classList.add("hidden");
+                    dom.readingPage.classList.remove("hidden");
+                    dom.readingPage.classList.add("flex", "reading-theme-default");
+                    renderMath(dom.readingContent);
+                }
+            }
+            function initReadingMode() { dom.exitReadingBtn.addEventListener("click", (() => { dom.app.classList.remove("hidden"); dom.readingPage.classList.add("hidden"); dom.readingPage.classList.remove("flex"); dom.readingPage.className = "hidden h-screen w-screen flex-col"; })); document.querySelectorAll(".theme-btn").forEach((btn => { btn.addEventListener("click", (e => { document.querySelectorAll(".theme-btn").forEach((btn => { btn.classList.replace("border-blue-500", "border-transparent") })); e.currentTarget.classList.replace("border-transparent", "border-blue-500"); const theme = e.currentTarget.dataset.theme; dom.readingPage.className = dom.readingPage.className.replace(/\breading-theme-\S+/g, ""); dom.readingPage.classList.add(`reading-theme-${theme}`) })) })); const updateFontSize = () => { dom.readingContent.style.fontSize = `${readingFontSize}px` }; dom.increaseFontBtn.addEventListener("click", (() => { readingFontSize += 1; updateFontSize() })); dom.decreaseFontBtn.addEventListener("click", (() => { readingFontSize = Math.max(12, readingFontSize - 1); updateFontSize() })); dom.readingScrollContainer.addEventListener("scroll", (() => { const scrollHeight = dom.readingScrollContainer.scrollHeight - dom.readingScrollContainer.clientHeight; dom.readingProgressBar.style.width = scrollHeight > 0 ? `${dom.readingScrollContainer.scrollTop/scrollHeight*100}%` : "0%" })); updateFontSize() }
+            function handleDarkModeToggle() { document.documentElement.classList.toggle("dark"); const isDark = document.documentElement.classList.contains("dark"); localStorage.setItem("darkMode", isDark); dom.themeIconSun.classList.toggle("hidden", isDark); dom.themeIconMoon.classList.toggle("hidden", !isDark) }
+            function loadPreferences() { if ("true" === localStorage.getItem("darkMode")) { handleDarkModeToggle() } const openFoldersData = localStorage.getItem("openFolders"); if (openFoldersData) { openFolders = new Set(JSON.parse(openFoldersData)) } }
+            
+            // --- BACKUP FUNCTION (NAYA AUR BEHTAR VERSION) START ---
+            async function handleBackup() {
+                try {
+                    const allItems = await getAllItems();
+                    if (allItems.length === 0) {
+                        showToast("Nothing to backup.");
+                        return;
+                    }
+        
+                    const dataStr = JSON.stringify(allItems, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const linkContainer = dom.editorActions;
+                    
+                    // Purane link ko hatayein agar koi hai
+                    const oldLink = document.getElementById('temp-backup-link-wrapper');
+                    if (oldLink) {
+                        oldLink.remove();
+                    }
+        
+                    // Naya link aur close button banane ke liye ek wrapper
+                    const linkWrapper = document.createElement('div');
+                    linkWrapper.id = 'temp-backup-link-wrapper';
+                    linkWrapper.className = 'ml-4 p-2 bg-green-100 dark:bg-green-900 border border-green-400 rounded-lg flex items-center gap-3 animate-pulse';
+        
+                    // Download link
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'notes_backup.json';
+                    a.textContent = 'Click to Download Backup';
+                    a.className = 'font-semibold text-green-700 dark:text-green-300 underline';
+                    
+                    // Close button (X)
+                    const closeBtn = document.createElement('button');
+                    closeBtn.textContent = '×';
+                    closeBtn.className = 'text-lg font-bold text-green-700 dark:text-green-300';
+                    closeBtn.title = 'Dismiss';
+                    closeBtn.onclick = () => {
+                        linkWrapper.remove();
+                        URL.revokeObjectURL(url); // Memory release karein
+                    };
+        
+                    linkWrapper.appendChild(a);
+                    linkWrapper.appendChild(closeBtn);
+                    linkContainer.appendChild(linkWrapper);
+        
+                    showToast("Backup link generated!");
+        
+                    // 20 second baad link apne aap hata dein
+                    setTimeout(() => {
+                        const currentLink = document.getElementById('temp-backup-link-wrapper');
+                        if (currentLink) {
+                            currentLink.remove();
+                            URL.revokeObjectURL(url); // Memory release karein
+                        }
+                    }, 20000);
+        
+                } catch(e) {
+                    console.error("Backup failed:", e);
+                    showToast("Backup failed. See console for details.");
+                }
+            }
+            // --- BACKUP FUNCTION END ---
+        
+            // --- RESTORE FUNCTION START ---
+            function handleRestore(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+        
+                if (!confirm("Are you sure you want to restore? This will ERASE all current notes and replace them with the backup data.")) {
+                    dom.restoreFileInput.value = ''; 
+                    return;
+                }
+        
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const itemsToRestore = JSON.parse(e.target.result);
+                        if (!Array.isArray(itemsToRestore)) {
+                            throw new Error("Invalid backup file format.");
+                        }
+        
+                        const transaction = db.transaction(STORE_NAME, "readwrite");
+                        const store = transaction.objectStore(STORE_NAME);
+                        
+                        const clearRequest = store.clear();
+                        clearRequest.onsuccess = () => {
+                            if (itemsToRestore.length === 0) {
+                                transaction.oncomplete = () => {
+                                    showToast("Restore complete. Backup was empty.");
+                                    refreshUI();
+                                    hideEditor();
+                                };
+                                return;
+                            }
+                            itemsToRestore.forEach(item => {
+                                if (item.hasOwnProperty('id') && typeof item.id === 'number') {
+                                   delete item.id;
+                                }
+                                store.add(item);
+                            });
+                        };
+                        
+                        transaction.oncomplete = () => {
+                            showToast("Notes restored successfully!");
+                            activeItemId = null;
+                            refreshUI();
+                            hideEditor();
+                        };
+        
+                        transaction.onerror = (err) => {
+                             console.error("Restore transaction error:", err);
+                             showToast("Restore failed during database update.");
+                        };
+                        
+                    } catch (err) {
+                        console.error("Restore failed:", err);
+                        showToast("Restore failed: Invalid file or data.");
+                    } finally {
+                        dom.restoreFileInput.value = '';
+                    }
+                };
+                reader.readAsText(file);
+            }
+            // --- RESTORE FUNCTION END ---
+        
+            async function init() {
+                try {
+                    await initDB();
+                    loadPreferences();
+                    await refreshUI();
+                    hideEditor();
+                    dom.addNewBtn.addEventListener("click", () => {
+                        const currentItem = activeItemId ? allItemsCache.find(item => item.id === activeItemId) : null;
+                        activeFolderForCreation = currentItem && "folder" === currentItem.type ? activeItemId : currentItem ? currentItem.parentId : null;
+                        dom.addItemModal.classList.remove("hidden");
+                        dom.addItemModal.classList.add("flex");
+                        dom.itemNameInput.focus();
+                    });
+                    dom.cancelAddBtn.addEventListener("click", () => dom.addItemModal.classList.add("hidden"));
+                    dom.confirmAddBtn.addEventListener("click", handleConfirmAdd);
+                    dom.itemNameInput.addEventListener("keydown", e => { if ("Enter" === e.key) { handleConfirmAdd() }});
+                    dom.renameBtn.addEventListener("click", handleShowRenameModal);
+                    dom.cancelRenameBtn.addEventListener("click", () => dom.renameItemModal.classList.add("hidden"));
+                    dom.confirmRenameBtn.addEventListener("click", handleConfirmRename);
+                    dom.renameItemInput.addEventListener("keydown", e => { if ("Enter" === e.key) { handleConfirmRename() }});
+                    dom.menuBtn.addEventListener("click", () => dom.sidebar.classList.remove("-translate-x-full"));
+                    dom.closeSidebarBtn.addEventListener("click", () => dom.sidebar.classList.add("-translate-x-full"));
+                    dom.saveNoteBtn.addEventListener("click", handleSaveNote);
+                    dom.deleteBtn.addEventListener("click", handleDelete);
+                    dom.readingModeBtn.addEventListener("click", handleReadingModeToggle);
+                    dom.darkModeToggle.addEventListener("click", handleDarkModeToggle);
+                    dom.breadcrumbContainer.addEventListener("click", e => { if ("A" === e.target.tagName) { e.preventDefault(); const idStr = e.target.dataset.id; if (idStr === "root") { activeItemId = null; hideEditor(); refreshUI(); } else { const id = parseInt(idStr, 10); if (!isNaN(id)) { handleItemSelect(id); } } } });
+                    
+                    // --- EVENT LISTENERS FOR BACKUP/RESTORE ---
+                    dom.backupBtn.addEventListener("click", handleBackup);
+                    dom.restoreBtn.addEventListener("click", () => dom.restoreFileInput.click());
+                    dom.restoreFileInput.addEventListener("change", handleRestore);
+        
+                    initReadingMode();
+                } catch (e) {
+                    console.error("Initialization failed:", e);
+                    document.body.innerHTML = `<div class="w-screen h-screen flex items-center justify-center text-red-500 font-semibold p-8 text-center">${e}</div>`;
+                }
+            }
+            
+            init();
+        })();
+    </script>
+</body>
+
+</html>
